@@ -3,26 +3,27 @@ participant frontend
 control backend
 database mongoDB
 
-frontend -> backend:delete(/deck/delete?name="")
+frontend -> backend:get(/deck?name="")
 backend -> backend:parseDeckName(name)
 backend -> backend:nameExists(name)
 backend -> backend:createQuery("deck","get","name")
 backend -> mongoDB:sendQuery(query)
 backend <- mongoDB:parseDbResponse(response)
-alt name is not empty and does not exist
-  backend -> backend:createQuery("deck","delete",name)
+alt name exists
+alt name is not empty
+  backend -> backend:createQuery("deck","get",name)
+else name is empty
+  backend -> backend:createQuery("deck","get")
+end
   backend -> mongoDB:sendQuery(query)
   backend <- mongoDB:parseDbResponse(response)
   alt response is ok
-    backend -> frontend:http(200)
-  else response is not ok
+    backend -> frontend:http(200,deckNames)
+  else response is not ok #Red
     backend -> frontend:http(500)
   end
-else name is empty
-  backend -> frontend:http(400)
-else name exists
-backend -> frontend:http(409)
+else name does not exist
+  backend -> frontend:http(404)
+
 end
-
-
 @enduml
