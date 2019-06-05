@@ -1,0 +1,28 @@
+@startuml
+participant frontend
+control backend
+database mongoDB
+
+frontend -> backend:delete(/deck?name="")
+backend -> backend:parseDeckName(name)
+backend -> backend:nameExists(name)
+backend -> backend:createQuery("deck","get","name")
+backend -> mongoDB:sendQuery(query)
+backend <- mongoDB:parseDbResponse(response)
+alt name is not empty and does not exist
+  backend -> backend:createQuery("deck","delete",name)
+  backend -> mongoDB:sendQuery(query)
+  backend <- mongoDB:parseDbResponse(response)
+  alt response is ok
+    backend -> frontend:http(200)
+  else response is not ok
+    backend -> frontend:http(500)
+  end
+else name is empty
+  backend -> frontend:http(400)
+else name exists
+backend -> frontend:http(409)
+end
+
+
+@enduml
