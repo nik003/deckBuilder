@@ -1,0 +1,12 @@
+@startuml
+participant frontend
+control backend
+database mongoDB
+
+frontend -> backend:get(/cards?filterConditions="")
+backend -> backend:parseFilterConditions(filterConditions)
+backend -> backend:createQuery("card","get",filter)
+backend -> mongoDB:sendQuery(query)
+backend <- mongoDB:parseDbResponse(response)
+backend -> frontend:HTTP response(cardData)
+@enduml
